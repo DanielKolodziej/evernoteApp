@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 import SideBar from './sidebar/Sidebar';
-import Editor from './editor/editor';
+import Editor from './editor/Editor';
 
 import './App.css';
 
