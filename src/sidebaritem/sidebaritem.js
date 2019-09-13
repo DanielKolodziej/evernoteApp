@@ -1,48 +1,68 @@
 import React from 'react';
-import { withStyles } from '@material-ui/core/styles';
-import styles from './styles';
+import { makeStyles } from '@material-ui/styles';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import DeleteIcon from '@material-ui/icons/Delete';
+import PropTypes from 'prop-types';
 import { removeHTMLTags } from '../helpers';
 
-const SideBarItemComponent = (props) => {
+const useStyles = makeStyles({
+  listItem: {
+    cursor: 'pointer',
+  },
+  textSection: {
+    maxWidth: '85%',
+  },
+  deleteIcon: {
+    position: 'absolute',
+    right: '5px',
+    top: 'calc(50% - 15px)',
+    '&:hover': {
+      color: 'red',
+    },
+  },
+});
 
-    const { _index, _note, classes, selectedNoteIndex } = props;
+const SideBarItem = ({
+  _index,
+  _note,
+  selectedNoteIndex,
+  selectNote,
+  deleteNote,
+}) => {
+  const classes = useStyles();
 
-    const deleteNote = (note) => {
-        if(window.confirm(`Are you sure you want to delete: ${note.title}`)) {
-          props.deleteNote(note);
-        }
-    }
-
-    const selectNote = (n,i) => {
-        props.selectNote(n, i)
-    };
-
-    return(
-        <div key={_index}>
-            <ListItem 
-                className={classes.listItem}
-                selected={selectedNoteIndex === _index}
-                alignItems='flex-start'>
-                    <div
-                        className={classes.textSection}
-                        onClick={()=>{ selectNote(_note, _index)}}>
-                        <ListItemText
-                            primary={_note.title}
-                            secondary={removeHTMLTags(_note.body.substring(0, 30)) + '...'}>
-                        </ListItemText>
-                    </div>
-                    <DeleteIcon 
-                        onClick={() => {
-                            deleteNote(_note)
-                        }}
-                        className={classes.deleteIcon}>
-                    </DeleteIcon>
-            </ListItem>
+  return (
+    <div key={_index}>
+      <ListItem
+        className={classes.listItem}
+        selected={selectedNoteIndex === _index}
+        alignItems="flex-start"
+        onClick={() => selectNote(_note, _index)}
+      >
+        <div className={classes.textSection}>
+          <ListItemText
+            primary={_note.title}
+            secondary={`${removeHTMLTags(_note.body.substring(0, 30))}...`}
+          />
         </div>
-    );
-}
+        <DeleteIcon
+          onClick={() => {
+            deleteNote(_note);
+          }}
+          className={classes.deleteIcon}
+        />
+      </ListItem>
+    </div>
+  );
+};
 
-export default withStyles(styles)(SideBarItemComponent) 
+SideBarItem.propTypes = {
+  _index: PropTypes.number.isRequired,
+  _note: PropTypes.object.isRequired,
+  selectedNoteIndex: PropTypes.number,
+  selectNote: PropTypes.func.isRequired,
+  deleteNote: PropTypes.func.isRequired,
+};
+
+export default SideBarItem;

@@ -1,60 +1,87 @@
 import React, { useState, useEffect } from 'react';
 import ReactQuill from 'react-quill';
-import debounce from '../helpers';
 import BorderColorIcon from '@material-ui/icons/BorderColor';
-import { withStyles } from '@material-ui/core/styles';
-import styles from './styles';
+import { makeStyles } from '@material-ui/styles';
+import PropTypes from 'prop-types';
+import debounce from '../helpers';
 
-const EditorComponent = (props) => {
-    const [text, setText] = useState('');
-    const [title, setTitle] = useState('');
-    const [id, setId] = useState('');
+const useStyles = makeStyles({
+  titleInput: {
+    height: '50px',
+    boxSizing: 'border-box',
+    border: 'none',
+    padding: '5px',
+    fontSize: '24px',
+    width: 'calc(100% - 300px)',
+    backgroundColor: '#29487d',
+    color: 'white',
+    paddingLeft: '50px',
+  },
+  editIcon: {
+    position: 'absolute',
+    left: '310px',
+    top: '12px',
+    color: 'white',
+    width: '10',
+    height: '10',
+  },
+  editorContainer: {
+    height: '100%',
+    boxSizing: 'border-box',
+  },
+});
 
-    const { classes } = props;
+const Editor = ({ selectedNote, noteUpdate }) => {
+  const classes = useStyles();
+  const [text, setText] = useState('');
+  const [title, setTitle] = useState('');
+  const [id, setId] = useState('');
 
-    const updateBody = async (val) => {
-        await setText(val);
-        update();
+  const update = debounce(() => {
+    console.log('updating db');
+    if (id) {
+      noteUpdate(id, {
+        title,
+        body: text,
+      });
     }
+  }, 1500);
 
-    const update = debounce(() => {
-        console.log('updating db')
-        if (id){
-            props.noteUpdate(id, {
-                title: title,
-                body: text
-            })
-        }
-    }, 1500);
+  const updateBody = async val => {
+    await setText(val);
+    update();
+  };
 
-    useEffect(()=> {
-        if (props.selectedNote.id !== id){
-            setText(props.selectedNote.body);
-            setTitle(props.selectedNote.title);
-            setId(props.selectedNote.id);
-        }
-    }, [props.selectedNote])
+  const updateTitle = async txt => {
+    await setTitle(txt);
+    update();
+  };
 
-    const updateTitle = async (txt) => {
-        await setTitle(txt);
-        update();
+  useEffect(() => {
+    if (selectedNote.id !== id) {
+      setText(selectedNote.body);
+      setTitle(selectedNote.title);
+      setId(selectedNote.id);
     }
+  }, [id, selectedNote.body, selectedNote.id, selectedNote.title]);
 
-    return(
-        <div className={classes.editorContainer}>
-            <BorderColorIcon className={classes.editIcon}></BorderColorIcon>
-            <input className={classes.titleInput}
-                    placeholder='Note tile...'
-                    value={title ? title : ''}
-                    onChange={(e) => updateTitle(e.target.value)}></input>
-            <ReactQuill 
-                value={text}
-                onChange={updateBody}
-            />
+  return (
+    <div className={classes.editorContainer}>
+      <BorderColorIcon className={classes.editIcon} />
+      <input
+        className={classes.titleInput}
+        placeholder="Note tile..."
+        value={title || ''}
+        onChange={e => updateTitle(e.target.value)}
+      />
+      <ReactQuill value={text} onChange={updateBody} />
+    </div>
+  );
+};
 
-        </div>
-    );
-}
+Editor.propTypes = {
+  selectedNote: PropTypes.object.isRequired,
+  noteUpdate: PropTypes.func.isRequired,
+};
 
-export default withStyles(styles)(EditorComponent) 
-//styles function from styles.js
+export default Editor;
